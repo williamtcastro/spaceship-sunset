@@ -4,6 +4,7 @@
 
 Output docs/gallery/demo.gif
 
+Set Shell "zsh"
 Set FontSize 14
 Set FontFamily "JetBrainsMono Nerd Font"
 Set Width 1100
@@ -13,10 +14,13 @@ Set Padding 20
 Set TypingSpeed 45ms
 Set PlaybackSpeed 1.0
 
-# Clean shell targeting the installed theme.
+# Bootstrap: vhs shells don't source ~/.zshrc, so load spaceship-sunset manually.
 Hide
-Type "clear" Enter
-Sleep 300ms
+Type "source ~/spaceship-sunset/lib/init.zsh"
+Enter
+Type "clear"
+Enter
+Sleep 500ms
 Show
 
 Type "# spaceship-sunset — one command rewrites every tool's theme"
@@ -32,7 +36,7 @@ Type "# bat, btop, yazi, ghostty, wezterm, lazygit, delta, cmux all follow"
 Sleep 1.5s
 Enter
 
-Type "bat --list-themes | grep -i $(cat ~/.spaceship-sunset/state/active_theme | head -c 4)"
+Type "cat ~/.spaceship-sunset/state/active_theme"
 Sleep 500ms
 Enter
 Sleep 2s
