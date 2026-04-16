@@ -107,7 +107,7 @@ detected=()
 if [[ ! -f "$SPACESHIP_SUNSET_HOME/config" ]]; then
   {
     printf '# spaceship-sunset opt-in integrations (edit to remove a tool).\n'
-    printf 'INTEGRATIONS=(%s)\n' "${detected[*]}"
+    printf 'INTEGRATIONS=(%s)\n' "${detected[*]:-}"
   } > "$SPACESHIP_SUNSET_HOME/config"
   info "detected integrations: ${detected[*]:-none}"
 else
