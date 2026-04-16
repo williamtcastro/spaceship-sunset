@@ -4,9 +4,6 @@ A warm-orange Spaceship prompt with six coordinated terminal palettes — one
 `set_theme` command rewrites bat, btop, yazi, ghostty, wezterm, iTerm2,
 lazygit, nvim, delta, and cmux to match.
 
-<!-- Generate with: vhs scripts/demo.tape -->
-![demo](docs/gallery/demo.gif)
-
 ```bash
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/williamtcastro/spaceship-sunset/main/install.sh)"
 ```
