@@ -9,7 +9,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install shellcheck and zsh
         run: sudo apt-get update && sudo apt-get install -y shellcheck zsh
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install runtime deps
         run: sudo apt-get update && sudo apt-get install -y zsh git fzf
@@ -81,7 +81,7 @@ jobs:
     runs-on: macos-latest
     needs: lint
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Verify BSD sed + zsh are present
         run: |
