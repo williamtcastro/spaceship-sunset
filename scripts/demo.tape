@@ -5,6 +5,8 @@
 Output docs/gallery/demo.gif
 
 Set Shell "zsh"
+Env COLORTERM "truecolor"
+Env TERM "xterm-256color"
 Set FontSize 14
 Set FontFamily "JetBrainsMono Nerd Font"
 Set Width 1100
