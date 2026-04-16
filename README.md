@@ -13,14 +13,29 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/williamtcastro/spaceship
 
 ## Palettes
 
-- `nord-vibrant-orange` (default)
-- `nord-pastel-orange`
-- `charcoal-vibrant-orange`
-- `catppuccin-mocha`
-- `catppuccin-macchiato`
-- `catppuccin-frappe`
+Top row = 14 accent colors (`CLR_ROSEWATER` … `CLR_LAVENDER`).
+Bottom row = surface ramp (`CLR_TEXT` → `CLR_CRUST`).
+
+### `nord-vibrant-orange` (default)
+![nord-vibrant-orange](docs/gallery/nord-vibrant-orange.svg)
+
+### `nord-pastel-orange`
+![nord-pastel-orange](docs/gallery/nord-pastel-orange.svg)
+
+### `charcoal-vibrant-orange`
+![charcoal-vibrant-orange](docs/gallery/charcoal-vibrant-orange.svg)
+
+### `catppuccin-mocha`
+![catppuccin-mocha](docs/gallery/catppuccin-mocha.svg)
+
+### `catppuccin-macchiato`
+![catppuccin-macchiato](docs/gallery/catppuccin-macchiato.svg)
+
+### `catppuccin-frappe`
+![catppuccin-frappe](docs/gallery/catppuccin-frappe.svg)
 
 Switch anytime: `set_theme` (fzf picker, or falls back to `select` menu).
+Regenerate swatches: `scripts/gen-gallery.sh`.
 
 ## Non-interactive install
 

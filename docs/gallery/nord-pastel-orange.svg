@@ -1,0 +1,30 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='924' height='180' viewBox='0 0 924 180'>
+  <rect width='100%' height='100%' fill='#2E3440'/>
+  <text x='16' y='22' font-family='system-ui, -apple-system, sans-serif' font-size='14' font-weight='600' fill='#D8DEE9'>nord-pastel-orange</text>
+  <rect x='16' y='32' width='60' height='60' rx='6' fill='#FFF0E0'/>
+  <rect x='80' y='32' width='60' height='60' rx='6' fill='#FFE0C0'/>
+  <rect x='144' y='32' width='60' height='60' rx='6' fill='#FFD0B5'/>
+  <rect x='208' y='32' width='60' height='60' rx='6' fill='#D4A070'/>
+  <rect x='272' y='32' width='60' height='60' rx='6' fill='#FF875F'/>
+  <rect x='336' y='32' width='60' height='60' rx='6' fill='#FFD1B0'/>
+  <rect x='400' y='32' width='60' height='60' rx='6' fill='#FFB86C'/>
+  <rect x='464' y='32' width='60' height='60' rx='6' fill='#FFE4B5'/>
+  <rect x='528' y='32' width='60' height='60' rx='6' fill='#A3BE8C'/>
+  <rect x='592' y='32' width='60' height='60' rx='6' fill='#88C0D0'/>
+  <rect x='656' y='32' width='60' height='60' rx='6' fill='#81A1C1'/>
+  <rect x='720' y='32' width='60' height='60' rx='6' fill='#81A1C1'/>
+  <rect x='784' y='32' width='60' height='60' rx='6' fill='#5E81AC'/>
+  <rect x='848' y='32' width='60' height='60' rx='6' fill='#FFE8D0'/>
+  <rect x='16' y='96' width='60' height='60' rx='6' fill='#D8DEE9' stroke='#4C566A' stroke-width='0.5'/>
+  <rect x='80' y='96' width='60' height='60' rx='6' fill='#E5E9F0' stroke='#4C566A' stroke-width='0.5'/>
+  <rect x='144' y='96' width='60' height='60' rx='6' fill='#D8DEE9' stroke='#4C566A' stroke-width='0.5'/>
+  <rect x='208' y='96' width='60' height='60' rx='6' fill='#4C566A' stroke='#4C566A' stroke-width='0.5'/>
+  <rect x='272' y='96' width='60' height='60' rx='6' fill='#4C566A' stroke='#4C566A' stroke-width='0.5'/>
+  <rect x='336' y='96' width='60' height='60' rx='6' fill='#4C566A' stroke='#4C566A' stroke-width='0.5'/>
+  <rect x='400' y='96' width='60' height='60' rx='6' fill='#434C5E' stroke='#4C566A' stroke-width='0.5'/>
+  <rect x='464' y='96' width='60' height='60' rx='6' fill='#3B4252' stroke='#4C566A' stroke-width='0.5'/>
+  <rect x='528' y='96' width='60' height='60' rx='6' fill='#3B4252' stroke='#4C566A' stroke-width='0.5'/>
+  <rect x='592' y='96' width='60' height='60' rx='6' fill='#2E3440' stroke='#4C566A' stroke-width='0.5'/>
+  <rect x='656' y='96' width='60' height='60' rx='6' fill='#2E3440' stroke='#4C566A' stroke-width='0.5'/>
+  <rect x='720' y='96' width='60' height='60' rx='6' fill='#2E3440' stroke='#4C566A' stroke-width='0.5'/>
+</svg>
