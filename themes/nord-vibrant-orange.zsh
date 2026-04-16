@@ -44,6 +44,15 @@ export BAT_THEME="Nord"
 # Btop Theme
 export BTOP_THEME="nord"
 
+# WezTerm color scheme — pass the palette name through; users supply a
+# matching entry in wezterm's color_schemes table (or a custom scheme file).
+export WEZTERM_COLOR_SCHEME="$THEME_NAME"
+
+# Lazygit accent colors — warm-palette variant pairs the orange ramp.
+export LAZYGIT_ACTIVE_BORDER="$CLR_PEACH"
+export LAZYGIT_OPTIONS_TEXT="$CLR_ROSEWATER"
+export LAZYGIT_CHERRY_FG="$CLR_FLAMINGO"
+
 # Spaceship Integration
 export SPACESHIP_CLR_DIR="$CLR_FLAMINGO"
 export SPACESHIP_CLR_GIT="$CLR_PEACH"

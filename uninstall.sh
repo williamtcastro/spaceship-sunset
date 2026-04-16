@@ -49,6 +49,29 @@ if [[ -f "$HOME/.gitconfig.spaceship-sunset.bak" ]]; then
   mv -f "$HOME/.gitconfig.spaceship-sunset.bak" "$HOME/.gitconfig"
 fi
 
+# iTerm2 dynamic profile lives outside $XDG and is a file we create (not edit),
+# so there's no snapshot to restore — just drop the file we wrote.
+iterm2_profile="$HOME/Library/Application Support/iTerm2/DynamicProfiles/spaceship-sunset.json"
+if [[ -f "$iterm2_profile" ]]; then
+  info "  removing iTerm2 dynamic profile $iterm2_profile"
+  rm -f "$iterm2_profile"
+fi
+
+# Ghostty theme file we generate. Same reasoning as iTerm2: it's a file we
+# create (no .bak snapshot), so delete it explicitly on uninstall.
+ghostty_theme="$xdg/ghostty/themes/spaceship-sunset"
+if [[ -f "$ghostty_theme" ]]; then
+  info "  removing ghostty theme $ghostty_theme"
+  rm -f "$ghostty_theme"
+fi
+
+# tmux theme file we generate (users source it from their tmux config).
+tmux_theme="$xdg/tmux/spaceship-sunset.conf"
+if [[ -f "$tmux_theme" ]]; then
+  info "  removing tmux theme $tmux_theme"
+  rm -f "$tmux_theme"
+fi
+
 # 3. Remove $SPACESHIP_SUNSET_HOME (installed repo + state + config).
 if [[ -d "$SPACESHIP_SUNSET_HOME" ]]; then
   info "removing $SPACESHIP_SUNSET_HOME"

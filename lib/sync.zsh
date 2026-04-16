@@ -5,6 +5,14 @@
 : ${SPACESHIP_SUNSET_HOME:="$HOME/.spaceship-sunset"}
 : ${SPACESHIP_SUNSET_ROOT:="${0:A:h:h}"}
 
+# _sss_debug <msg> — emit a line to stderr when SPACESHIP_SUNSET_DEBUG=1.
+# Integrations call this next to early-return guards so users can see which
+# integrations ran vs skipped and why. No-op when debug is unset.
+_sss_debug() {
+  [[ -n "${SPACESHIP_SUNSET_DEBUG:-}" ]] && print -u2 -- "[sss-debug] $*"
+  return 0
+}
+
 # _sss_sed_inplace <pattern> <file> — in-place edit that works on BSD and GNU sed.
 _sss_sed_inplace() {
   local pattern="$1" file="$2"
@@ -28,7 +36,7 @@ _sss_load_config() {
     source "$SPACESHIP_SUNSET_HOME/config"
   fi
   if (( ${#INTEGRATIONS[@]} == 0 )); then
-    INTEGRATIONS=(bat btop yazi ghostty wezterm tmux lazygit nvim delta cmux)
+    INTEGRATIONS=(bat btop yazi ghostty wezterm iterm2 tmux lazygit nvim delta cmux)
   fi
 }
 
@@ -55,8 +63,13 @@ sync_theme() {
     if [[ -f "$integration" ]]; then
       source "$integration"
       if typeset -f "_sss_${tool}_sync" >/dev/null; then
+        _sss_debug "dispatch: $tool"
         "_sss_${tool}_sync" "$theme"
+      else
+        _sss_debug "dispatch: $tool (no sync function — skipped)"
       fi
+    else
+      _sss_debug "dispatch: $tool (no integration file — skipped)"
     fi
   done
 
@@ -86,9 +99,20 @@ set_theme() {
   fi
 
   if command -v fzf >/dev/null; then
+    # Preview pane renders the palette itself (ANSI 24-bit swatches + sample
+    # text-on-base). Falls back to cat'ing the theme file if the preview
+    # helper is missing — should never happen for a normal install.
+    local preview_sh="$SPACESHIP_SUNSET_ROOT/scripts/preview-theme.sh"
+    local preview_cmd
+    if [[ -x "$preview_sh" ]]; then
+      preview_cmd="SPACESHIP_SUNSET_ROOT='$SPACESHIP_SUNSET_ROOT' zsh '$preview_sh' {}"
+    else
+      preview_cmd="cat '$themes_dir/{}.zsh'"
+    fi
     selected=$(command ls "$themes_dir" | grep '\.zsh$' | sed 's/\.zsh$//' | \
-      fzf --header 'Select spaceship-sunset theme' \
-          --preview "test -r '$themes_dir/{}.zsh' && (command -v bat >/dev/null && bat --color=always --style=numbers '$themes_dir/{}.zsh' || cat '$themes_dir/{}.zsh')")
+      fzf --header 'Select spaceship-sunset theme (preview shows palette)' \
+          --preview "$preview_cmd" \
+          --preview-window='right:60%:wrap')
   else
     local -a themes
     themes=($(command ls "$themes_dir" | grep '\.zsh$' | sed 's/\.zsh$//'))

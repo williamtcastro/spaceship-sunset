@@ -15,13 +15,31 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y shellcheck zsh
 
       - name: shellcheck bash scripts
-        run: shellcheck install.sh uninstall.sh integrations/*.sh
+        run: shellcheck install.sh uninstall.sh integrations/*.sh scripts/validate-themes.sh scripts/check-contrast.sh
 
       - name: zsh -n syntax check
         run: |
           for f in lib/*.zsh lib/sections/*.zsh themes/*.zsh; do
             zsh -n "$f" || exit 1
           done
+
+      - name: Theme contract validator
+        run: bash scripts/validate-themes.sh
+
+      - name: WCAG contrast check (CLR_TEXT on CLR_BASE)
+        run: bash scripts/check-contrast.sh
+
+      - name: Gallery SVGs match themes (no drift)
+        run: |
+          zsh scripts/gen-gallery.sh >/dev/null
+          # Fail if any svg drifted from what's committed. --exit-code =
+          # non-zero when differences exist; -- limits scope to the gallery
+          # dir so unrelated local tree changes don't taint the check.
+          git diff --exit-code -- docs/gallery/ || {
+            echo 'FAIL: docs/gallery SVGs drift from themes/*.zsh.'
+            echo 'Run `zsh scripts/gen-gallery.sh` locally and commit the result.'
+            exit 1
+          }
 
   install-linux:
     runs-on: ubuntu-latest
@@ -127,7 +145,7 @@ jobs:
       - name: Per-tool integrations rewrite every seeded config (BSD sed)
         run: |
           export FAKE_HOME="$RUNNER_TEMP/fake-home3"
-          mkdir -p "$FAKE_HOME/.config"/{bat,btop,yazi,ghostty,wezterm,lazygit,nvim}
+          mkdir -p "$FAKE_HOME/.config"/{bat,btop,yazi,ghostty,wezterm,lazygit,nvim,cmux,tmux}
 
           printf '%s\n' '--theme="OneHalfDark"'                > "$FAKE_HOME/.config/bat/config"
           printf '%s\n' 'color_theme = "Default"'              > "$FAKE_HOME/.config/btop/btop.conf"
@@ -137,10 +155,22 @@ jobs:
           printf '%s\n' 'gui: {}'                              > "$FAKE_HOME/.config/lazygit/config.yml"
           printf '%s\n' '[user]'                               > "$FAKE_HOME/.gitconfig"
           printf '%s\n' '  email = test@example.com'          >> "$FAKE_HOME/.gitconfig"
+          # cmux seed — trailing key after selectionColor catches the
+          # older regex that stripped the trailing comma.
+          /bin/cat > "$FAKE_HOME/.config/cmux/settings.json" <<'JSON'
+          {
+            "selectionColor" : "#112233",
+            "notificationBadgeColor" : null,
+            "fontFamily" : "Menlo"
+          }
+          JSON
+          # tmux seed — installer only auto-detects tmux when ~/.tmux.conf exists.
+          printf '%s\n' '# placeholder' > "$FAKE_HOME/.tmux.conf"
 
           HOME="$FAKE_HOME" \
           SPACESHIP_SUNSET_SOURCE="$PWD" \
           SPACESHIP_SUNSET_THEME=nord-vibrant-orange \
+          SPACESHIP_SUNSET_INTEGRATIONS='bat,btop,yazi,ghostty,wezterm,lazygit,nvim,delta,cmux,tmux' \
             bash ./install.sh
 
           fail=0
@@ -150,12 +180,29 @@ jobs:
           check .config/bat/config                '--theme="Nord"'
           check .config/btop/btop.conf            'color_theme = "nord"'
           check .config/yazi/theme.toml           'use = "nord"'
-          check .config/ghostty/config            'theme = dark:nord-vibrant-orange'
+          # ghostty now points at a palette-derived theme file we generate, not the palette name.
+          check .config/ghostty/config            'theme = dark:spaceship-sunset,light:Catppuccin Latte'
+          test -f "$FAKE_HOME/.config/ghostty/themes/spaceship-sunset" || { echo 'FAIL: ghostty theme file not generated'; fail=1; }
+          check .config/ghostty/themes/spaceship-sunset 'background = '
+          check .config/ghostty/themes/spaceship-sunset 'palette = 0='
           check .config/wezterm/wezterm.lua       "config.color_scheme = 'nord-vibrant-orange'"
           check .config/lazygit/config.yml        'activeBorderColor:'
           check .gitconfig                        'syntax-theme = Nord'
           test -f "$FAKE_HOME/.config/nvim/active_theme" || { echo 'FAIL: nvim active_theme not written'; fail=1; }
           grep -q 'nord-vibrant-orange' "$FAKE_HOME/.config/nvim/active_theme" || { echo 'FAIL: nvim active_theme content'; fail=1; }
+
+          # cmux — selectionColor replaced (nord-vibrant CLR_PEACH=#FF9D00),
+          # trailing comma preserved, null badge left alone.
+          check .config/cmux/settings.json        '"selectionColor" : "#FF9D00"'
+          grep -q '"selectionColor" : "#FF9D00",' "$FAKE_HOME/.config/cmux/settings.json" \
+            || { echo 'FAIL: cmux selectionColor trailing comma dropped'; cat "$FAKE_HOME/.config/cmux/settings.json"; fail=1; }
+          grep -q '"notificationBadgeColor" : null' "$FAKE_HOME/.config/cmux/settings.json" \
+            || { echo 'FAIL: cmux null badge color was rewritten'; fail=1; }
+
+          # tmux — palette-derived theme file is generated.
+          test -f "$FAKE_HOME/.config/tmux/spaceship-sunset.conf" || { echo 'FAIL: tmux theme file not generated'; fail=1; }
+          check .config/tmux/spaceship-sunset.conf 'status-style'
+          check .config/tmux/spaceship-sunset.conf 'pane-active-border-style'
 
           bak .config/bat/config
           bak .config/btop/btop.conf
@@ -164,8 +211,52 @@ jobs:
           bak .config/wezterm/wezterm.lua
           bak .config/lazygit/config.yml
           bak .gitconfig
+          bak .config/cmux/settings.json
 
           test "$fail" = "0"
+
+      - name: iTerm2 dynamic profile + uninstall cleanup (macOS)
+        run: |
+          export FAKE_HOME="$RUNNER_TEMP/fake-home-iterm"
+          mkdir -p "$FAKE_HOME"
+          HOME="$FAKE_HOME" \
+          SPACESHIP_SUNSET_SOURCE="$PWD" \
+          SPACESHIP_SUNSET_THEME=charcoal-vibrant-orange \
+          SPACESHIP_SUNSET_INTEGRATIONS='iterm2' \
+            bash ./install.sh
+
+          profile="$FAKE_HOME/Library/Application Support/iTerm2/DynamicProfiles/spaceship-sunset.json"
+          test -f "$profile" || { echo "FAIL: iTerm2 dynamic profile not written"; exit 1; }
+          grep -q '"Name": "Spaceship Sunset"' "$profile" || { echo "FAIL: profile missing Name"; cat "$profile"; exit 1; }
+          grep -q '"Guid": "spaceship-sunset-dynamic-profile"' "$profile" || { echo "FAIL: profile missing Guid"; cat "$profile"; exit 1; }
+
+          # plutil validates the profile as JSON *and* as a plist structure,
+          # so we catch malformed escapes / trailing commas iTerm2 would reject.
+          plutil -lint "$profile" || { echo "FAIL: plutil rejected the profile"; cat "$profile"; exit 1; }
+
+          HOME="$FAKE_HOME" bash ./uninstall.sh
+          test ! -f "$profile" || { echo "FAIL: uninstall did not remove iTerm2 profile"; exit 1; }
+
+      - name: Uninstall cleans generated ghostty + tmux files
+        run: |
+          export FAKE_HOME="$RUNNER_TEMP/fake-home-gen"
+          mkdir -p "$FAKE_HOME/.config/ghostty"
+          printf '%s\n' 'theme = dark:catppuccin-frappe,light:Catppuccin Latte' > "$FAKE_HOME/.config/ghostty/config"
+          printf '%s\n' '# placeholder' > "$FAKE_HOME/.tmux.conf"
+
+          HOME="$FAKE_HOME" \
+          SPACESHIP_SUNSET_SOURCE="$PWD" \
+          SPACESHIP_SUNSET_THEME=charcoal-vibrant-orange \
+          SPACESHIP_SUNSET_INTEGRATIONS='ghostty,tmux' \
+            bash ./install.sh
+
+          test -f "$FAKE_HOME/.config/ghostty/themes/spaceship-sunset" || { echo 'FAIL: ghostty theme missing after install'; exit 1; }
+          test -f "$FAKE_HOME/.config/tmux/spaceship-sunset.conf"       || { echo 'FAIL: tmux theme missing after install'; exit 1; }
+
+          HOME="$FAKE_HOME" bash ./uninstall.sh
+
+          test ! -f "$FAKE_HOME/.config/ghostty/themes/spaceship-sunset" || { echo 'FAIL: uninstall left ghostty theme'; exit 1; }
+          test ! -f "$FAKE_HOME/.config/tmux/spaceship-sunset.conf"       || { echo 'FAIL: uninstall left tmux theme'; exit 1; }
 
       - name: wezterm catppuccin name mapping
         run: |

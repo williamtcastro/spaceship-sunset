@@ -56,13 +56,14 @@ Both sections:
 - Read `CLAUDE_CODE_EFFORT_LEVEL` / `GEMINI_CODE_MODEL` as env fallbacks.
 - Do nothing if their binary is absent, so the prompt gracefully degrades.
 
-## tmux integration limitation (v1)
+## tmux integration
 
-tmux's catppuccin plugin uses `@catppuccin_flavour`, which has no equivalent
-for nord or charcoal palettes. `integrations/tmux.sh` is a no-op in v1 — the
-status line stays on whatever flavor you pinned manually. Contributions to
-generalize this (e.g. a mapping layer, or switching to a palette-agnostic
-tmux theme) are welcome.
+tmux is palette-agnostic: `integrations/tmux.sh` writes
+`~/.config/tmux/spaceship-sunset.conf` directly from `CLR_*` (status bar,
+window status, pane borders, mode indicator) — no plugin required. Users
+wire it in once via `source-file ~/.config/tmux/spaceship-sunset.conf` in
+their tmux config; future `set_theme` runs rewrite the sourced file so a
+`tmux source-file` reload picks up the new palette.
 
 ## State and persistence
 

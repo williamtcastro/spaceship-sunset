@@ -4,31 +4,59 @@
 #   bash -c "$(curl -fsSL https://raw.githubusercontent.com/williamtcastro/spaceship-sunset/main/install.sh)"
 #
 # Flags / env:
-#   --theme=<name>             non-interactive theme selection
-#   SPACESHIP_SUNSET_THEME     same, via env
-#   SPACESHIP_SUNSET_SOURCE    path to a local checkout; skips git clone (dev workflow)
-#   SPACESHIP_SUNSET_HOME      install destination (default: $HOME/.spaceship-sunset)
+#   --theme=<name>                  non-interactive theme selection
+#   --integrations=a,b,c            non-interactive integration selection (comma or space separated)
+#   --no-select                     skip the interactive integration picker; enable all detected
+#   SPACESHIP_SUNSET_THEME          same as --theme, via env
+#   SPACESHIP_SUNSET_INTEGRATIONS   same as --integrations, via env
+#   SPACESHIP_SUNSET_SOURCE         path to a local checkout; skips git clone (dev workflow)
+#   SPACESHIP_SUNSET_HOME           install destination (default: $HOME/.spaceship-sunset)
 set -euo pipefail
 
 : "${SPACESHIP_SUNSET_HOME:=$HOME/.spaceship-sunset}"
 : "${SPACESHIP_SUNSET_REPO:=https://github.com/williamtcastro/spaceship-sunset.git}"
 : "${SPACESHIP_SUNSET_BRANCH:=main}"
 
-default_theme="nord-vibrant-orange"
+default_theme="charcoal-vibrant-orange"
 theme=""
+integrations_override=""
+no_select=0
 
 for arg in "$@"; do
   case "$arg" in
     --theme=*) theme="${arg#--theme=}" ;;
-    --help|-h) sed -n '2,10p' "$0"; exit 0 ;;
+    --integrations=*) integrations_override="${arg#--integrations=}" ;;
+    --no-select) no_select=1 ;;
+    --help|-h) sed -n '2,13p' "$0"; exit 0 ;;
     *) printf 'Unknown argument: %s\n' "$arg" >&2; exit 2 ;;
   esac
 done
 
 [[ -z "$theme" && -n "${SPACESHIP_SUNSET_THEME:-}" ]] && theme="$SPACESHIP_SUNSET_THEME"
+[[ -z "$integrations_override" && -n "${SPACESHIP_SUNSET_INTEGRATIONS:-}" ]] && integrations_override="$SPACESHIP_SUNSET_INTEGRATIONS"
 
 info() { printf '==> %s\n' "$*"; }
 warn() { printf 'WARN: %s\n' "$*" >&2; }
+
+# Human-readable description for each integration — shown next to the
+# name in the fzf picker and the fallback [Y/n] prompt so users know
+# which file each toggle will touch. Keep descriptions short.
+integration_desc() {
+  case "$1" in
+    bat)     echo "syntax highlighting  — ~/.config/bat/config" ;;
+    btop)    echo "system monitor       — ~/.config/btop/btop.conf" ;;
+    yazi)    echo "file manager         — ~/.config/yazi/theme.toml" ;;
+    ghostty) echo "ghostty terminal     — ~/.config/ghostty/{config,themes/spaceship-sunset}" ;;
+    wezterm) echo "wezterm terminal     — ~/.config/wezterm/wezterm.lua" ;;
+    iterm2)  echo "iTerm2 terminal      — Library/Application Support/iTerm2/DynamicProfiles" ;;
+    tmux)    echo "tmux status/panes    — ~/.config/tmux/spaceship-sunset.conf" ;;
+    lazygit) echo "lazygit              — ~/.config/lazygit/config.yml" ;;
+    nvim)    echo "neovim colorscheme   — ~/.config/nvim/active_theme" ;;
+    delta)   echo "delta diff viewer    — ~/.gitconfig" ;;
+    cmux)    echo "cmux                 — ~/.config/cmux/settings.json" ;;
+    *)       echo "(no description)" ;;
+  esac
+}
 
 check_dep() { command -v "$1" >/dev/null 2>&1 || warn "missing optional dependency: $1 ($2)"; }
 check_dep zsh "the prompt targets zsh"
@@ -42,6 +70,10 @@ if [[ -n "${SPACESHIP_SUNSET_SOURCE:-}" ]]; then
     mkdir -p "$(dirname "$SPACESHIP_SUNSET_HOME")"
     rm -rf "$SPACESHIP_SUNSET_HOME"
     cp -R "$SPACESHIP_SUNSET_SOURCE" "$SPACESHIP_SUNSET_HOME"
+    # Strip dev-only directories that shouldn't end up in a user's install.
+    rm -rf "$SPACESHIP_SUNSET_HOME/.git" \
+           "$SPACESHIP_SUNSET_HOME/.github" \
+           "$SPACESHIP_SUNSET_HOME/.nwave"
   fi
 elif [[ -d "$SPACESHIP_SUNSET_HOME/.git" ]]; then
   info "updating $SPACESHIP_SUNSET_HOME"
@@ -100,16 +132,69 @@ detected=()
 [[ -f "$xdg/ghostty/config"      ]] && detected+=(ghostty)
 [[ -f "$xdg/wezterm/wezterm.lua" ]] && detected+=(wezterm)
 [[ -f "$xdg/lazygit/config.yml"  ]] && detected+=(lazygit)
+[[ -f "$HOME/.tmux.conf" || -f "$xdg/tmux/tmux.conf" ]] && detected+=(tmux)
 [[ -d "$xdg/nvim"                ]] && detected+=(nvim)
 [[ -f "$HOME/.gitconfig"         ]] && detected+=(delta)
 [[ "$OSTYPE" == darwin* && -f "$xdg/cmux/settings.json" ]] && detected+=(cmux)
+[[ "$OSTYPE" == darwin* && ( -d "/Applications/iTerm.app" || -d "$HOME/Applications/iTerm.app" || -d "$HOME/Library/Application Support/iTerm2" ) ]] && detected+=(iterm2)
+
+# 4a. Narrow detected → selected. Non-interactive overrides win; otherwise
+# offer a picker so users can opt out of individual tools before first sync.
+known=()
+for _f in "$SPACESHIP_SUNSET_HOME/integrations"/*.sh; do
+  [[ -f "$_f" ]] && known+=("$(basename "$_f" .sh)")
+done
+
+selected=()
+if [[ -n "$integrations_override" ]]; then
+  # Accept comma or space separated. Validate against shipped integrations
+  # (not just auto-detected) so users can opt in to tools whose configs
+  # they'll create later — e.g. iTerm2 before first launch.
+  IFS=', ' read -r -a _requested <<<"$integrations_override"
+  for r in "${_requested[@]}"; do
+    [[ -z "$r" ]] && continue
+    _valid=0
+    for k in "${known[@]}"; do [[ "$r" == "$k" ]] && _valid=1 && break; done
+    if (( _valid == 1 )); then
+      selected+=("$r")
+    else
+      warn "unknown integration '$r' (skipping)"
+    fi
+  done
+elif (( no_select == 1 )) || (( ${#detected[@]} == 0 )) || [[ ! -t 0 || ! -t 1 ]]; then
+  selected=("${detected[@]}")
+elif command -v fzf >/dev/null 2>&1; then
+  info "pick integrations (TAB multi-select, ENTER confirm, ESC = enable all)"
+  # Render rows as "name    description" so users see which config each
+  # toggle touches. fzf's --with-nth restricts the visible columns;
+  # after selection we cut column 1 back out to match the INTEGRATIONS list.
+  _chosen=$({
+    for t in "${detected[@]}"; do printf '%s\t%s\n' "$t" "$(integration_desc "$t")"; done
+  } | fzf --multi --header "spaceship-sunset: select integrations (TAB = toggle, ENTER = confirm)" --height=40% \
+          --delimiter=$'\t' --with-nth='1,2' \
+          --bind 'ctrl-a:select-all,ctrl-d:deselect-all' || true)
+  if [[ -n "$_chosen" ]]; then
+    while IFS=$'\t' read -r _name _rest; do
+      [[ -n "$_name" ]] && selected+=("$_name")
+    done <<<"$_chosen"
+  else
+    selected=("${detected[@]}")
+  fi
+else
+  info "detected integrations — reply [y/N] for each (default: yes)"
+  for t in "${detected[@]}"; do
+    _ans=""
+    read -r -p "  enable $t ($(integration_desc "$t")) [Y/n] " _ans </dev/tty || _ans=""
+    case "$_ans" in n|N|no|NO) ;; *) selected+=("$t") ;; esac
+  done
+fi
 
 if [[ ! -f "$SPACESHIP_SUNSET_HOME/config" ]]; then
   {
     printf '# spaceship-sunset opt-in integrations (edit to remove a tool).\n'
-    printf 'INTEGRATIONS=(%s)\n' "${detected[*]:-}"
+    printf 'INTEGRATIONS=(%s)\n' "${selected[*]:-}"
   } > "$SPACESHIP_SUNSET_HOME/config"
-  info "detected integrations: ${detected[*]:-none}"
+  info "enabled integrations: ${selected[*]:-none}"
 else
   info "keeping existing integrations config at $SPACESHIP_SUNSET_HOME/config"
 fi

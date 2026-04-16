@@ -1,19 +1,18 @@
 #!/usr/bin/env bash
 # lazygit integration — rewrite config.yml from the palette's CLR_* values.
+# Accent colors (active border, options text, cherry-pick fg) come from
+# LAZYGIT_* exports in the theme file so new palettes don't touch this script.
 
 _sss_lazygit_sync() {
   local cfg="${XDG_CONFIG_HOME:-$HOME/.config}/lazygit/config.yml"
-  local theme="${1:-$ACTIVE_THEME}"
-  [[ -f "$cfg" ]] || return 0
+  [[ -f "$cfg" ]] || { _sss_debug "lazygit: skipped — $cfg not found"; return 0; }
+  [[ -n "$CLR_TEXT" ]] || { _sss_debug "lazygit: skipped — CLR_TEXT unset"; return 0; }
 
-  local lg_active_border="$CLR_TEAL"
-  local lg_options_text="$CLR_BLUE"
-  local lg_cherry_fg="$CLR_TEAL"
-  if [[ "$theme" != catppuccin-* ]]; then
-    lg_active_border="$CLR_PEACH"
-    lg_options_text="$CLR_ROSEWATER"
-    lg_cherry_fg="$CLR_FLAMINGO"
-  fi
+  # Palette-provided accents; fall back to warm-orange defaults when a
+  # palette doesn't ship the LAZYGIT_* exports (keeps older forks working).
+  local lg_active_border="${LAZYGIT_ACTIVE_BORDER:-$CLR_PEACH}"
+  local lg_options_text="${LAZYGIT_OPTIONS_TEXT:-$CLR_ROSEWATER}"
+  local lg_cherry_fg="${LAZYGIT_CHERRY_FG:-$CLR_FLAMINGO}"
 
   _sss_backup "$cfg"
 
@@ -47,4 +46,5 @@ git:
     colorArg: always
     pager: delta --dark --paging=never
 EOF
+  _sss_debug "lazygit: rewrote $cfg"
 }

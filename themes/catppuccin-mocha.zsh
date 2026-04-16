@@ -44,6 +44,15 @@ export BAT_THEME="Catppuccin Mocha"
 # Btop Theme
 export BTOP_THEME="catppuccin_mocha"
 
+# WezTerm color scheme (name wezterm resolves internally)
+export WEZTERM_COLOR_SCHEME="Catppuccin Mocha"
+
+# Lazygit accent colors — palette picks which CLR_* reads as the accent.
+# Cool-palette catppuccin variants read nicer with teal/blue accents than orange.
+export LAZYGIT_ACTIVE_BORDER="$CLR_TEAL"
+export LAZYGIT_OPTIONS_TEXT="$CLR_BLUE"
+export LAZYGIT_CHERRY_FG="$CLR_TEAL"
+
 # Spaceship Integration
 export SPACESHIP_CLR_DIR="$CLR_FLAMINGO"
 export SPACESHIP_CLR_GIT="$CLR_PEACH"

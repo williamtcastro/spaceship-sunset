@@ -44,6 +44,14 @@ export BAT_THEME="Catppuccin Macchiato"
 # Btop Theme
 export BTOP_THEME="catppuccin_macchiato"
 
+# WezTerm color scheme (name wezterm resolves internally)
+export WEZTERM_COLOR_SCHEME="Catppuccin Macchiato"
+
+# Lazygit accent colors — cool-palette catppuccin reads nicer with teal/blue.
+export LAZYGIT_ACTIVE_BORDER="$CLR_TEAL"
+export LAZYGIT_OPTIONS_TEXT="$CLR_BLUE"
+export LAZYGIT_CHERRY_FG="$CLR_TEAL"
+
 # Spaceship Integration
 export SPACESHIP_CLR_DIR="$CLR_FLAMINGO"
 export SPACESHIP_CLR_GIT="$CLR_PEACH"
