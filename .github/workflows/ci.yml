@@ -144,7 +144,7 @@ jobs:
             bash ./install.sh
 
           fail=0
-          check() { grep -q "$2" "$FAKE_HOME/$1" || { echo "FAIL: $1 missing /$2/"; cat "$FAKE_HOME/$1"; fail=1; }; }
+          check() { grep -qF -- "$2" "$FAKE_HOME/$1" || { echo "FAIL: $1 missing /$2/"; cat "$FAKE_HOME/$1"; fail=1; }; }
           bak()   { test -f "$FAKE_HOME/$1.spaceship-sunset.bak" || { echo "FAIL: missing snapshot $1.spaceship-sunset.bak"; fail=1; }; }
 
           check .config/bat/config                '--theme="Nord"'
