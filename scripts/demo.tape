@@ -7,6 +7,7 @@ Output docs/gallery/demo.gif
 Set Shell "zsh"
 Env COLORTERM "truecolor"
 Env TERM "xterm-256color"
+Env SPACESHIP_PROMPT_ASYNC "false"
 Set FontSize 14
 Set FontFamily "JetBrainsMono Nerd Font"
 Set Width 1100
@@ -26,49 +27,60 @@ Type "source ~/.local/share/zinit/plugins/spaceship-prompt---spaceship-prompt/sp
 Enter
 Type "clear"
 Enter
-Sleep 800ms
+Sleep 1s
 Show
 
 Type "# spaceship-sunset — one command rewrites every tool's theme"
 Sleep 1.2s
 Enter
+Sleep 600ms
 
+# --- charcoal-vibrant-orange (saturated orange) -------------------------------
 Type "set_theme charcoal-vibrant-orange"
 Sleep 400ms
 Enter
-Sleep 1.2s
-# Reload palette + prompt so the new colors render live.
+Sleep 1.5s
 Hide
-Type "source ~/spaceship-sunset/lib/init.zsh && source ~/.local/share/zinit/plugins/spaceship-prompt---spaceship-prompt/spaceship.zsh && clear"
+Type "source ~/spaceship-sunset/themes/charcoal-vibrant-orange.zsh && source ~/.local/share/zinit/plugins/spaceship-prompt---spaceship-prompt/spaceship.zsh && clear"
+Enter
+Sleep 800ms
+Show
 Enter
 Sleep 500ms
-Show
-Type "# charcoal-vibrant-orange now active"
-Sleep 1.5s
+Type "# charcoal-vibrant-orange — saturated orange on dark"
+Sleep 1.8s
 Enter
+Sleep 600ms
 
+# --- catppuccin-mocha (pastel pink/peach) -------------------------------------
 Type "set_theme catppuccin-mocha"
 Sleep 400ms
 Enter
-Sleep 1.2s
+Sleep 1.5s
 Hide
-Type "source ~/spaceship-sunset/lib/init.zsh && source ~/.local/share/zinit/plugins/spaceship-prompt---spaceship-prompt/spaceship.zsh && clear"
+Type "source ~/spaceship-sunset/themes/catppuccin-mocha.zsh && source ~/.local/share/zinit/plugins/spaceship-prompt---spaceship-prompt/spaceship.zsh && clear"
+Enter
+Sleep 800ms
+Show
 Enter
 Sleep 500ms
-Show
-Type "# catppuccin-mocha"
-Sleep 1.5s
+Type "# catppuccin-mocha — pastel pink/peach"
+Sleep 1.8s
 Enter
+Sleep 600ms
 
-Type "set_theme nord-vibrant-orange"
+# --- nord-pastel-orange (cream/peach on nord blue) ----------------------------
+Type "set_theme nord-pastel-orange"
 Sleep 400ms
 Enter
-Sleep 1.2s
+Sleep 1.5s
 Hide
-Type "source ~/spaceship-sunset/lib/init.zsh && source ~/.local/share/zinit/plugins/spaceship-prompt---spaceship-prompt/spaceship.zsh && clear"
+Type "source ~/spaceship-sunset/themes/nord-pastel-orange.zsh && source ~/.local/share/zinit/plugins/spaceship-prompt---spaceship-prompt/spaceship.zsh && clear"
+Enter
+Sleep 800ms
+Show
 Enter
 Sleep 500ms
-Show
-Type "# nord-vibrant-orange (default)"
+Type "# nord-pastel-orange — cream/peach on nord steel"
 Sleep 2s
 Enter
