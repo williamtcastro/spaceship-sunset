@@ -1,0 +1,44 @@
+name: regen-gallery
+
+# Regenerate palette SVG swatches whenever a theme file changes, and open
+# a commit on main keeping docs/gallery/ in sync with themes/.
+#
+# Demo GIF (docs/gallery/demo.gif) still requires a Nerd Font + real TTY;
+# it's regenerated manually via `vhs scripts/demo.tape`.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'themes/**'
+      - 'scripts/gen-gallery.sh'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  regen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install zsh
+        run: sudo apt-get update && sudo apt-get install -y zsh
+
+      - name: Regenerate SVGs
+        run: zsh scripts/gen-gallery.sh
+
+      - name: Commit if changed
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          if ! git diff --quiet docs/gallery/; then
+            git add docs/gallery/*.svg
+            git commit -m "docs(gallery): auto-regenerate palette swatches"
+            git push
+          else
+            echo "no gallery changes"
+          fi

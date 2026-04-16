@@ -124,17 +124,56 @@ jobs:
           test ! -d "$FAKE_HOME/.spaceship-sunset" || {
             echo 'state dir not cleaned'; exit 1; }
 
-      - name: BSD sed in-place — set_theme rewrites a sample config
+      - name: Per-tool integrations rewrite every seeded config (BSD sed)
         run: |
           export FAKE_HOME="$RUNNER_TEMP/fake-home3"
-          mkdir -p "$FAKE_HOME/.config/bat"
-          printf '%s\n' '--theme="OneHalfDark"' > "$FAKE_HOME/.config/bat/config"
+          mkdir -p "$FAKE_HOME/.config"/{bat,btop,yazi,ghostty,wezterm,lazygit,nvim}
+
+          printf '%s\n' '--theme="OneHalfDark"'                > "$FAKE_HOME/.config/bat/config"
+          printf '%s\n' 'color_theme = "Default"'              > "$FAKE_HOME/.config/btop/btop.conf"
+          printf '%s\n' 'use = "catppuccin-frappe"'            > "$FAKE_HOME/.config/yazi/theme.toml"
+          printf '%s\n' 'theme = dark:catppuccin-frappe,light:Catppuccin Latte' > "$FAKE_HOME/.config/ghostty/config"
+          printf "%s\n" "config.color_scheme = 'OldTheme'"     > "$FAKE_HOME/.config/wezterm/wezterm.lua"
+          printf '%s\n' 'gui: {}'                              > "$FAKE_HOME/.config/lazygit/config.yml"
+          printf '%s\n' '[user]'                               > "$FAKE_HOME/.gitconfig"
+          printf '%s\n' '  email = test@example.com'          >> "$FAKE_HOME/.gitconfig"
+
           HOME="$FAKE_HOME" \
           SPACESHIP_SUNSET_SOURCE="$PWD" \
           SPACESHIP_SUNSET_THEME=nord-vibrant-orange \
             bash ./install.sh
-          grep -q 'Nord' "$FAKE_HOME/.config/bat/config" || {
-            echo 'bat config was not rewritten by BSD sed'
-            cat "$FAKE_HOME/.config/bat/config"
-            exit 1; }
-          test -f "$FAKE_HOME/.config/bat/config.spaceship-sunset.bak"
+
+          fail=0
+          check() { grep -q "$2" "$FAKE_HOME/$1" || { echo "FAIL: $1 missing /$2/"; cat "$FAKE_HOME/$1"; fail=1; }; }
+          bak()   { test -f "$FAKE_HOME/$1.spaceship-sunset.bak" || { echo "FAIL: missing snapshot $1.spaceship-sunset.bak"; fail=1; }; }
+
+          check .config/bat/config                '--theme="Nord"'
+          check .config/btop/btop.conf            'color_theme = "nord"'
+          check .config/yazi/theme.toml           'use = "nord"'
+          check .config/ghostty/config            'theme = dark:nord-vibrant-orange'
+          check .config/wezterm/wezterm.lua       "config.color_scheme = 'nord-vibrant-orange'"
+          check .config/lazygit/config.yml        'activeBorderColor:'
+          check .gitconfig                        'syntax-theme = Nord'
+          test -f "$FAKE_HOME/.config/nvim/active_theme" || { echo 'FAIL: nvim active_theme not written'; fail=1; }
+          grep -q 'nord-vibrant-orange' "$FAKE_HOME/.config/nvim/active_theme" || { echo 'FAIL: nvim active_theme content'; fail=1; }
+
+          bak .config/bat/config
+          bak .config/btop/btop.conf
+          bak .config/yazi/theme.toml
+          bak .config/ghostty/config
+          bak .config/wezterm/wezterm.lua
+          bak .config/lazygit/config.yml
+          bak .gitconfig
+
+          test "$fail" = "0"
+
+      - name: wezterm catppuccin name mapping
+        run: |
+          export FAKE_HOME="$RUNNER_TEMP/fake-home4"
+          mkdir -p "$FAKE_HOME/.config/wezterm"
+          printf "%s\n" "config.color_scheme = 'X'" > "$FAKE_HOME/.config/wezterm/wezterm.lua"
+          HOME="$FAKE_HOME" \
+          SPACESHIP_SUNSET_SOURCE="$PWD" \
+          SPACESHIP_SUNSET_THEME=catppuccin-mocha \
+            bash ./install.sh
+          grep -q "config.color_scheme = 'Catppuccin Mocha'" "$FAKE_HOME/.config/wezterm/wezterm.lua"
