@@ -136,6 +136,7 @@ else
     printf '\n%s\n' "$begin_marker"
     printf '# Managed by spaceship-sunset. Changes here may be overwritten.\n'
     printf 'export SPACESHIP_SUNSET_HOME="%s"\n' "$SPACESHIP_SUNSET_HOME"
+    # shellcheck disable=SC2016  # single-quoted intentionally: emit literal $VAR for the shell that later sources .zshrc.
     printf '[ -f "$SPACESHIP_SUNSET_HOME/lib/init.zsh" ] && source "$SPACESHIP_SUNSET_HOME/lib/init.zsh"\n'
     printf '%s\n' "$end_marker"
   } >> "$zshrc"
