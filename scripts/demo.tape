@@ -26,29 +26,45 @@ Sleep 500ms
 Show
 
 Type "# spaceship-sunset — one command rewrites every tool's theme"
-Sleep 1.5s
+Sleep 1.2s
 Enter
 
 Type "set_theme charcoal-vibrant-orange"
-Sleep 500ms
+Sleep 400ms
 Enter
-Sleep 2s
-
-Type "# bat, btop, yazi, ghostty, wezterm, lazygit, delta, cmux all follow"
+Sleep 1.2s
+# Reload palette + prompt so the new colors render live.
+Hide
+Type "source ~/spaceship-sunset/lib/init.zsh && clear"
+Enter
+Sleep 400ms
+Show
+Type "# charcoal-vibrant-orange now active"
 Sleep 1.5s
 Enter
 
-Type "cat ~/.spaceship-sunset/state/active_theme"
-Sleep 500ms
-Enter
-Sleep 2s
-
 Type "set_theme catppuccin-mocha"
-Sleep 500ms
+Sleep 400ms
 Enter
-Sleep 2s
+Sleep 1.2s
+Hide
+Type "source ~/spaceship-sunset/lib/init.zsh && clear"
+Enter
+Sleep 400ms
+Show
+Type "# catppuccin-mocha"
+Sleep 1.5s
+Enter
 
 Type "set_theme nord-vibrant-orange"
-Sleep 500ms
+Sleep 400ms
 Enter
-Sleep 2.5s
+Sleep 1.2s
+Hide
+Type "source ~/spaceship-sunset/lib/init.zsh && clear"
+Enter
+Sleep 400ms
+Show
+Type "# nord-vibrant-orange (default)"
+Sleep 2s
+Enter
