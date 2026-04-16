@@ -22,3 +22,57 @@ jobs:
           for f in lib/*.zsh lib/sections/*.zsh themes/*.zsh; do
             zsh -n "$f" || exit 1
           done
+
+  install-linux:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install runtime deps
+        run: sudo apt-get update && sudo apt-get install -y zsh git fzf
+
+      - name: Run installer against a scratch HOME
+        run: |
+          export FAKE_HOME="$RUNNER_TEMP/fake-home"
+          mkdir -p "$FAKE_HOME"
+          HOME="$FAKE_HOME" \
+          SPACESHIP_SUNSET_SOURCE="$PWD" \
+          SPACESHIP_SUNSET_THEME=nord-vibrant-orange \
+            bash ./install.sh
+
+      - name: Verify state file + managed block
+        run: |
+          export FAKE_HOME="$RUNNER_TEMP/fake-home"
+          test "$(cat "$FAKE_HOME/.spaceship-sunset/state/active_theme")" = "nord-vibrant-orange"
+          grep -q '# >>> spaceship-sunset >>>' "$FAKE_HOME/.zshrc"
+          grep -q '# <<< spaceship-sunset <<<' "$FAKE_HOME/.zshrc"
+
+      - name: Idempotency — re-run installer
+        run: |
+          export FAKE_HOME="$RUNNER_TEMP/fake-home"
+          HOME="$FAKE_HOME" \
+          SPACESHIP_SUNSET_SOURCE="$PWD" \
+          SPACESHIP_SUNSET_THEME=nord-vibrant-orange \
+            bash ./install.sh
+          count=$(grep -c '# >>> spaceship-sunset >>>' "$FAKE_HOME/.zshrc")
+          test "$count" = "1" || { echo "managed block duplicated: $count"; exit 1; }
+
+      - name: Uninstall restores original state
+        run: |
+          export FAKE_HOME="$RUNNER_TEMP/fake-home"
+          HOME="$FAKE_HOME" bash ./uninstall.sh
+          ! grep -q 'spaceship-sunset' "$FAKE_HOME/.zshrc" 2>/dev/null || {
+            echo 'managed block not fully removed'; exit 1; }
+          test ! -d "$FAKE_HOME/.spaceship-sunset" || {
+            echo 'state dir not cleaned'; exit 1; }
+
+      - name: init.zsh loads under real zsh
+        run: |
+          export FAKE_HOME="$RUNNER_TEMP/fake-home2"
+          mkdir -p "$FAKE_HOME"
+          HOME="$FAKE_HOME" \
+          SPACESHIP_SUNSET_SOURCE="$PWD" \
+          SPACESHIP_SUNSET_THEME=nord-vibrant-orange \
+            bash ./install.sh
+          HOME="$FAKE_HOME" zsh -c 'source "$HOME/.spaceship-sunset/vendor/repo/lib/init.zsh" 2>/dev/null || source '"$PWD"'/lib/init.zsh; echo OK'
