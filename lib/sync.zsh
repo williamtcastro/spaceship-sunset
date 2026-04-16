@@ -72,6 +72,19 @@ set_theme() {
   local themes_dir="$SPACESHIP_SUNSET_ROOT/themes"
   local selected
 
+  # Direct invocation: `set_theme <name>` skips the picker.
+  if [[ $# -gt 0 ]]; then
+    if [[ -f "$themes_dir/$1.zsh" ]]; then
+      sync_theme "$1"
+      return $?
+    else
+      print -u2 -- "set_theme: unknown theme '$1'"
+      print -u2 -- 'Available:'
+      command ls "$themes_dir" | grep '\.zsh$' | sed 's/\.zsh$/  /' >&2
+      return 1
+    fi
+  fi
+
   if command -v fzf >/dev/null; then
     selected=$(command ls "$themes_dir" | grep '\.zsh$' | sed 's/\.zsh$//' | \
       fzf --header 'Select spaceship-sunset theme' \
