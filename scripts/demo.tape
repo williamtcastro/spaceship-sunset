@@ -16,6 +16,8 @@ Set PlaybackSpeed 1.0
 
 # Bootstrap: vhs shells don't source ~/.zshrc, so load spaceship-sunset manually.
 Hide
+Type "setopt interactive_comments"
+Enter
 Type "source ~/spaceship-sunset/lib/init.zsh"
 Enter
 Type "clear"
