@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install shellcheck and zsh
+        run: sudo apt-get update && sudo apt-get install -y shellcheck zsh
+
+      - name: shellcheck bash scripts
+        run: shellcheck install.sh uninstall.sh integrations/*.sh
+
+      - name: zsh -n syntax check
+        run: |
+          for f in lib/*.zsh lib/sections/*.zsh themes/*.zsh; do
+            zsh -n "$f" || exit 1
+          done
